@@ -10,6 +10,7 @@ import Landing from './components/Landing'
 import GuidedMode from './components/GuidedMode'
 import JourneyTracker from './components/JourneyTracker'
 import VoterRegistrationSimulation from './components/VoterRegistrationSimulation'
+import CandidatesPanel from './components/CandidatesPanel'
 import { AppProvider, useAppContext } from './context/AppContext'
 
 function AppContent() {
@@ -26,6 +27,8 @@ function AppContent() {
         return <MapView />
       case 'simulator':
         return <Simulator />
+      case 'candidates':
+        return <CandidatesPanel />
       default:
         if (state.user_stage === 'learning') return <Timeline />
         if (state.first_time_voter) return <Checklist />

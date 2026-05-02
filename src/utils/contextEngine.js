@@ -46,6 +46,9 @@ export function processContext(extractedIntent, currentState, rawMessage) {
     case 'voting_process':
       nextPanel = 'simulator';
       break;
+    case 'candidates_inquiry':
+      nextPanel = 'candidates';
+      break;
     default:
       break;
   }
@@ -59,12 +62,14 @@ export function processContext(extractedIntent, currentState, rawMessage) {
     nextPanel = 'map';
   } else if (msgLower.includes("how does voting work") || msgLower.includes("phases") || msgLower.includes("when is")) {
     nextPanel = 'timeline';
-  } else if (msgLower.includes("at the booth") || msgLower.includes("at the polling station") || msgLower.includes("i am at the booth")) {
+  } else if (msgLower.includes('at the booth') || msgLower.includes('at the polling station') || msgLower.includes('i am at the booth')) {
     nextStage = 'at_polling_station';
     nextPanel = 'simulator';
-  } else if (msgLower.includes("i'm voting") || msgLower.includes("started voting") || msgLower.includes("inside the booth")) {
+  } else if (msgLower.includes("i'm voting") || msgLower.includes('started voting') || msgLower.includes('inside the booth')) {
     nextStage = 'voting';
     nextPanel = 'simulator';
+  } else if (msgLower.includes('candidate') || msgLower.includes('who is contesting') || msgLower.includes('who can i vote')) {
+    nextPanel = 'candidates';
   }
 
   return { nextPanel, nextStage, nextAppView, systemAction };

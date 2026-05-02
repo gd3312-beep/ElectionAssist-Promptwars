@@ -1,61 +1,119 @@
-# ElectionAssist
+# 🗳️ ElectionAssist — AI Civic Guidance Platform
 
-A lightweight, modern, production-ready web application providing a guided, interactive, and personalized experience to help users understand and participate in elections.
+> **Live Demo:** https://electionassist-570282205129.us-central1.run.app
 
-## Features
-- **Context-Aware Assistant:** Driven by Gemini 1.5 Flash, adjusting to user language and context. Tested to successfully maintain conversational context and process ambiguous queries (like "what next?") seamlessly based on user stage logic.
-- **Multilingual & Voice Interface:** Native Web Speech API integration for speech-to-text and text-to-speech without heavy dependencies.
-- **Dynamic Real-Time UI:** Triggers MapView (rendered entirely inline), Checklist, Timeline, and Voting Simulator based on conversational state.
-- **Accessibility:** Built-in A11y toggle for high contrast and larger text.
+An AI-powered civic assistant that guides users through the entire voting journey — from registration to casting their vote — with voice interaction, multilingual support, and real-time step-by-step guidance.
 
-## Performance Efficiency
-- **Final Build Size:** **~198 KB** (Significantly below the strict 10MB limit).
-- Achieved by strictly utilizing zero heavy UI/State dependencies, heavily leveraging native browser APIs, and employing minimal custom CSS within modular components.
+---
 
-## Testing & Clean Repository State
-- **Enterprise-Level Validation:** The application underwent rigorous end-to-end testing (using Playwright) during development to validate all real-world scenarios, dynamic UI triggers, and context maintenance. 
-- **Optimized for Evaluation:** The repository is submitted in a perfectly clean state. All testing files, scripts, and temporary dependencies were permanently removed prior to submission. No testing artifacts remain in the repository or `package.json`. The local `.env` configuration is strictly excluded via `.gitignore`.
+## ✨ Key Features
 
-## Local Development
+| Feature | Description |
+|---------|-------------|
+| 🤖 **AI Chat (Gemini 1.5 Flash)** | Context-aware responses via a secure server-side proxy |
+| 🧭 **Voting Journey Tracker** | Visual step-by-step progress: Registered → At Booth → Voted |
+| 🎮 **Guided Mode + Inline Help** | Step-by-step wizard with AI chat assistant at every step |
+| 📋 **Smart Checklist** | Personalized document checklist with readiness score (%) |
+| 🗺️ **Polling Booth Map** | Google Maps embed with estimated distance & travel time |
+| 🎙️ **Voice-First Interaction** | Speak your question; AI auto-responds |
+| 🔊 **Text-to-Speech** | AI reads responses aloud |
+| 👤 **Sign Up + Backend Login** | Simulated authentication with email/phone stored in a lightweight backend |
+| ✏️ **Voter ID Service** | Real-feeling Voter ID application flow with status tracking |
+| 🗳️ **Candidate Info** | Real-time fetch of contesting candidates |
+| 🌐 **Multilingual** | Toggle between English and regional languages |
+| 🧠 **Easy Mode** | Larger fonts, simpler AI language for low-literacy users |
 
-1. Clone or download the repository.
-2. Run `npm install` to install dependencies.
-3. Copy `.env.example` to `.env` and add your API keys:
-   ```env
-   VITE_GEMINI_API_KEY=your_gemini_api_key
-   VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-   ```
-4. Run `npm run dev` to start the development server.
+---
 
-## Cloud Run Deployment (Production)
+## 🚀 Tech Stack
 
-ElectionAssist is fully packaged into a multi-stage Docker container utilizing Nginx to serve the lightweight bundle. There is absolutely **no backend logic**, ensuring strict compliance with the project architecture.
+- **Frontend:** React 18 + Vite
+- **Backend:** Node.js + Express (Minimalist <100 lines)
+- **AI:** Google Gemini 1.5 Flash (Server-side proxy for security)
+- **Maps:** Google Maps Embed API
+- **Styling:** Vanilla CSS with Glassmorphism design
+- **Deployment:** Google Cloud Run (Dockerized Express server serving static React dist)
 
-1. Submit your build to Google Cloud, explicitly passing your environment variables:
-   ```bash
-   gcloud builds submit --tag gcr.io/[PROJECT-ID]/electionassist \
-     --build-arg VITE_GEMINI_API_KEY="your_key_here" \
-     --build-arg VITE_GOOGLE_MAPS_API_KEY="your_key_here" \
-     --build-arg VITE_GOOGLE_CLIENT_ID="your_client_id_here"
-   ```
-2. Deploy the built container to Cloud Run (runs on required port `8080`):
-   ```bash
-   gcloud run deploy electionassist \
-     --image gcr.io/[PROJECT-ID]/electionassist \
-     --platform managed \
-     --region us-central1 \
-     --allow-unauthenticated
-   ```
+---
 
-## Security Notes
-- **API Keys:** This application is fully client-side, meaning `VITE_` prefixed environment variables will be bundled into the frontend. **You must strictly limit your Google API keys** to specific domains in your Google Cloud Console to prevent unauthorized usage. 
-  - Required Restriction: Set the HTTP referrer restriction in Google Cloud Console to `https://*.run.app/*` once deployed.
-- **Environment Verification:** Never commit your `.env` file to version control. It is explicitly ignored via `.gitignore`. Ensure API keys are injected exclusively during the secure CI/CD build phase as `--build-arg`s.
-- **Data Privacy:** User conversations, location data, and context are never sent to a backend. Session data is stored strictly locally in the browser's `localStorage`.
+## 🛠️ Local Development
 
-## Assumptions & Tradeoffs
-- Maps and translations rely on browser support and Google Services.
-- The step-by-step guidance uses a generalized election process to remain lightweight and universally applicable.
+### Prerequisites
+- Node.js 18+
+- A Google Gemini API Key ([Get one](https://aistudio.google.com/))
 
-## Conclusion
-ElectionAssist delivers validated real-world usability and strong context-aware decision making. It seamlessly integrates the conversational capability of AI with deterministic rule-based logic to create a lightweight yet powerful architecture designed specifically to assist voters effectively.
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/gd3312-beep/ElectionAssist-Promptwars.git
+cd ElectionAssist-Promptwars
+
+# Install dependencies
+npm install
+
+# Create your .env file
+cp .env.example .env
+# Edit .env and add your API keys
+
+# Start the dev server (Frontend + Backend)
+npm run dev    # Starts Vite
+npm start      # Starts Express Backend on :8080
+```
+
+---
+
+## 🐳 Docker & Cloud Run Deployment
+
+The app uses a Node.js/Express server to serve both the API and the React frontend.
+
+### Security Note
+**DO NOT hardcode API keys in the Dockerfile.** Doing so will cause Google to automatically disable your keys for security. Always pass them as environment variables during deployment.
+
+### Deployment Command
+
+```bash
+# Deploy to Cloud Run
+gcloud run deploy electionassist \
+  --source . \
+  --project YOUR_PROJECT_ID \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars="GEMINI_API_KEY=your_new_key_here" \
+  --set-build-env-vars="VITE_GEMINI_API_KEY=your_new_key_here,VITE_GOOGLE_MAPS_API_KEY=your_maps_key,VITE_GOOGLE_CLIENT_ID=your_client_id" \
+  --quiet
+```
+
+---
+
+## 🏗️ Project Structure
+
+```
+├── server/
+│   └── index.js                  # Minimal Express backend (API + Static server)
+├── src/
+│   ├── components/
+│   │   ├── Chat.jsx              # Main AI chat interface
+│   │   ├── CandidatesPanel.jsx   # Card list of contesting candidates
+│   │   ├── VoterRegistrationSimulation.jsx # Voter ID application service
+│   │   └── ...
+│   ├── services/
+│   │   ├── api.js                # Frontend client for the Express backend
+│   │   └── gemini.js             # AI logic (proxies to backend)
+│   └── ...
+└── Dockerfile                    # Multi-stage build (Vite build -> Express server)
+```
+
+---
+
+## 🔐 Privacy & Safety
+
+- User profiles and applications are stored in **server-side memory** (reset on restart for demo purposes).
+- API keys are handled server-side to prevent browser exposure.
+- All government services are clearly labelled as **simulations**.
+
+---
+
+## 📄 License
+
+MIT © 2026 ElectionAssist Team
