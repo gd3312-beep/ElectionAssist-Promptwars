@@ -5,7 +5,7 @@ export default function GuidedMode() {
   const { state, dispatch } = useAppContext()
 
   const steps = [
-    { id: 'learning', label: 'Step 1: Preparation', desc: 'Learn about your local candidates and ensure you have valid ID (e.g., Driver\\'s License, Passport).' },
+    { id: 'learning', label: 'Step 1: Preparation', desc: "Learn about your local candidates and ensure you have valid ID (e.g., Driver's License, Passport)." },
     { id: 'registered', label: 'Step 2: Registration', desc: 'Verify your name is on the electoral roll. If not, register online or at your local office.' },
     { id: 'at_polling_station', label: 'Step 3: Polling Booth', desc: 'Arrive at your designated polling station. Hand your ID to the polling officer for verification.' },
     { id: 'voting', label: 'Step 4: Casting Vote', desc: 'Proceed to the voting compartment. Select your candidate on the machine or ballot paper. Do not take photos.' },
