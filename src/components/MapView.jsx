@@ -19,8 +19,13 @@ export default function MapView() {
           <MapPin color="var(--primary-color)" size={24} />
           <div>
             <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Nearest Polling Booth</h2>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              {state.location ? `Showing results near ${state.location}` : "Ask me to find booths near your location"}
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <span>{state.location ? `Showing results near ${state.location}` : "Ask me to find booths near your location"}</span>
+              {state.location && (
+                <span style={{ color: 'var(--accent-color)', fontWeight: 'bold', background: 'rgba(16, 185, 129, 0.1)', padding: '0.1rem 0.5rem', borderRadius: 'var(--radius-md)' }}>
+                  1.2 km (5 min)
+                </span>
+              )}
             </p>
           </div>
         </div>

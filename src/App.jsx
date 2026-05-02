@@ -8,10 +8,12 @@ import MapView from './components/MapView'
 import Simulator from './components/Simulator'
 import Landing from './components/Landing'
 import GuidedMode from './components/GuidedMode'
+import JourneyTracker from './components/JourneyTracker'
+import VoterRegistrationSimulation from './components/VoterRegistrationSimulation'
 import { AppProvider, useAppContext } from './context/AppContext'
 
 function AppContent() {
-  const { state } = useAppContext()
+  const { state, dispatch } = useAppContext()
 
   // Determine which right panel component to show based on state
   const renderRightPanel = () => {
@@ -33,7 +35,7 @@ function AppContent() {
 
   if (state.app_view === 'landing') {
     return (
-      <div className="app-container" style={{ padding: '2rem' }}>
+      <div className="app-container" style={{ padding: '1.5rem', justifyContent: 'center' }}>
         <Landing />
       </div>
     )
@@ -41,8 +43,16 @@ function AppContent() {
 
   if (state.app_view === 'guided') {
     return (
-      <div className="app-container" style={{ padding: '2rem' }}>
+      <div className="app-container" style={{ padding: '1.5rem' }}>
         <GuidedMode />
+      </div>
+    )
+  }
+
+  if (state.app_view === 'registration') {
+    return (
+      <div className="app-container" style={{ padding: '1.5rem', alignItems: 'center', justifyContent: 'center' }}>
+        <VoterRegistrationSimulation onExit={() => dispatch({ type: 'SET_APP_VIEW', payload: 'chat' })} />
       </div>
     )
   }
@@ -50,6 +60,9 @@ function AppContent() {
   return (
     <div className="app-container">
       <Header />
+      <div style={{ padding: '0.75rem 1rem 0 1rem' }}>
+        <JourneyTracker />
+      </div>
       <main className="main-content">
         <section className="left-panel">
           <Chat />

@@ -84,6 +84,13 @@ export function AppProvider({ children }) {
     } else {
       document.documentElement.removeAttribute('data-accessibility')
     }
+
+    // Easy Mode: larger text
+    if (state.simple_mode) {
+      document.documentElement.setAttribute('data-easy', 'true')
+    } else {
+      document.documentElement.removeAttribute('data-easy')
+    }
   }, [state])
 
   return (

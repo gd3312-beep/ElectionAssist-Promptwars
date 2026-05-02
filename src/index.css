@@ -10,9 +10,10 @@
   --text-secondary: #94a3b8;
   --card-bg: rgba(30, 41, 59, 0.6);
   --card-border: rgba(255, 255, 255, 0.1);
-  --primary-color: #3b82f6;
-  --primary-hover: #60a5fa;
-  --accent-color: #10b981;
+  --primary-color: #4F46E5; /* Calm blue */
+  --primary-hover: #6366F1;
+  --accent-color: #22C55E; /* Soft green */
+  --pending-color: #F59E0B; /* Amber for pending */
   --danger-color: #ef4444;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
@@ -21,6 +22,7 @@
   --radius-lg: 1.25rem;
   --radius-xl: 2rem;
 }
+
 
 [data-theme='dark'] {
   --bg-gradient-start: #0f172a;
@@ -125,4 +127,58 @@ button {
 
 .action-btn:active {
   transform: translateY(0);
+}
+.journey-step {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.journey-step:hover {
+  transform: translateY(-2px);
+}
+
+/* Hide scrollbar but keep functionality for chips */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Main two-panel layout */
+.main-content {
+  display: grid;
+  grid-template-columns: 55% 45%;
+  gap: 1rem;
+  padding: 0.75rem 1rem 1rem 1rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.left-panel, .right-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Easy Mode: larger text for accessibility */
+[data-easy='true'] body,
+[data-easy='true'] input,
+[data-easy='true'] button {
+  font-size: 1.2rem !important;
+}
+[data-easy='true'] .glass-panel {
+  font-size: 1.15rem;
+}
+
+/* Chip hover */
+button:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+    height: auto;
+  }
+  .left-panel, .right-panel {
+    min-height: 50vh;
+  }
 }
