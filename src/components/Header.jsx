@@ -25,9 +25,33 @@ export default function Header() {
 
   return (
     <header className="glass-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', marginBottom: '1rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }} onClick={() => dispatch({ type: 'SET_APP_VIEW', payload: 'landing' })}>
-        <Globe color="var(--primary-color)" />
-        <h1 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--primary-color)' }}>ElectionAssist</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }} onClick={() => dispatch({ type: 'SET_APP_VIEW', payload: 'landing' })}>
+          <Globe color="var(--primary-color)" />
+          <h1 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--primary-color)', fontWeight: 800 }}>ElectionAssist</h1>
+        </div>
+        
+        {/* Context Visibility Badge */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem', 
+          background: 'rgba(0,0,0,0.05)', 
+          padding: '0.4rem 0.8rem', 
+          borderRadius: 'var(--radius-xl)', 
+          fontSize: '0.8rem',
+          border: '1px solid var(--card-border)',
+          fontWeight: 600
+        }}>
+          {state.user_stage === 'learning' && <span>📖 Learning Phase</span>}
+          {state.user_stage === 'registered' && <span style={{ color: 'var(--accent-color)' }}>✅ Registered Voter</span>}
+          {state.user_stage === 'at_polling_station' && <span style={{ color: 'var(--primary-color)' }}>📍 At Polling Booth</span>}
+          {state.user_stage === 'voting' && <span style={{ color: 'var(--danger-color)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger-color)', animation: 'pulse 1.5s infinite' }} />
+            Currently Voting
+          </span>}
+          {state.user_stage === 'completed' && <span>🎉 Voting Completed</span>}
+        </div>
       </div>
       
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

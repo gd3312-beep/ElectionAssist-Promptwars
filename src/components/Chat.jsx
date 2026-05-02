@@ -39,34 +39,39 @@ export default function Chat() {
     }
 
     setIsTyping(true)
+    try {
+      // 3. Call Gemini
+      const response = await generateChatResponse(textToSend, state)
+      
+      // 4. Update Context Engine
+      const { nextPanel, nextStage, nextAppView } = processContext(response.extracted_intent || '', state, textToSend)
 
-    // 3. Call Gemini
-    const response = await generateChatResponse(textToSend, state)
-    
-    // 4. Update Context Engine
-    const { nextPanel, nextStage, nextAppView } = processContext(response.extracted_intent || '', state, textToSend)
+      dispatch({ type: 'SET_USER_STAGE', payload: nextStage })
+      if (nextPanel) {
+        dispatch({ type: 'SET_ACTIVE_PANEL', payload: nextPanel })
+      }
+      if (nextAppView && nextAppView !== state.app_view) {
+        dispatch({ type: 'SET_APP_VIEW', payload: nextAppView })
+      }
+      if (response.extracted_location) {
+        dispatch({ type: 'SET_LOCATION', payload: response.extracted_location })
+      }
+      if (response.is_first_time) {
+         dispatch({ type: 'SET_FIRST_TIME_VOTER', payload: true })
+         dispatch({ type: 'SET_ACTIVE_PANEL', payload: 'checklist' })
+      }
 
-    dispatch({ type: 'SET_USER_STAGE', payload: nextStage })
-    if (nextPanel) {
-      dispatch({ type: 'SET_ACTIVE_PANEL', payload: nextPanel })
+      // 5. Add assistant response
+      dispatch({ type: 'ADD_MESSAGE', payload: { role: 'assistant', text: response.text } })
+      setIsTyping(false)
+      
+      // Auto-read response if speech was recently used
+      speakText(response.text, state.user_language)
+    } catch (error) {
+      console.error("Gemini Error:", error)
+      dispatch({ type: 'ADD_MESSAGE', payload: { role: 'assistant', text: "I'm having trouble connecting right now. Please try again in a moment.", isWarning: true } })
+      setIsTyping(false)
     }
-    if (nextAppView && nextAppView !== state.app_view) {
-      dispatch({ type: 'SET_APP_VIEW', payload: nextAppView })
-    }
-    if (response.extracted_location) {
-      dispatch({ type: 'SET_LOCATION', payload: response.extracted_location })
-    }
-    if (response.is_first_time) {
-       dispatch({ type: 'SET_FIRST_TIME_VOTER', payload: true })
-       dispatch({ type: 'SET_ACTIVE_PANEL', payload: 'checklist' })
-    }
-
-    // 5. Add assistant response
-    dispatch({ type: 'ADD_MESSAGE', payload: { role: 'assistant', text: response.text } })
-    setIsTyping(false)
-    
-    // Auto-read response if speech was recently used
-    speakText(response.text, state.user_language)
   }
 
   const handleMicClick = () => {
@@ -87,7 +92,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div className="glass-panel fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       
       {/* Messages Area */}
       <div className="scrollable" style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -104,14 +109,16 @@ export default function Chat() {
         )}
 
         {state.messages.map((msg, idx) => (
-          <div key={idx} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
+          <div key={idx} className="message-fade-in" style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
             <div style={{ 
               background: msg.role === 'user' ? 'var(--primary-color)' : (msg.isWarning ? 'var(--danger-color)' : 'var(--card-bg)'),
               color: msg.role === 'user' ? 'white' : (msg.isWarning ? 'white' : 'var(--text-primary)'),
               padding: '1rem',
               borderRadius: 'var(--radius-lg)',
               border: msg.role === 'assistant' && !msg.isWarning ? '1px solid var(--card-border)' : 'none',
-              boxShadow: 'var(--shadow-sm)'
+              boxShadow: 'var(--shadow-sm)',
+              fontSize: '1.05rem',
+              lineHeight: '1.5'
             }}>
               {msg.text}
             </div>
@@ -143,7 +150,22 @@ export default function Chat() {
           placeholder="Describe your situation..."
           style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)', outline: 'none' }}
         />
-        <button onClick={() => handleSend()} style={{ padding: '0.75rem', borderRadius: '50%', background: 'var(--primary-color)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button 
+          onClick={() => handleSend()} 
+          disabled={isTyping || !input.trim()}
+          style={{ 
+            padding: '0.75rem', 
+            borderRadius: '50%', 
+            background: isTyping || !input.trim() ? 'var(--text-secondary)' : 'var(--primary-color)', 
+            color: 'white', 
+            border: 'none', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            cursor: isTyping || !input.trim() ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+        >
           <Send size={20} />
         </button>
       </div>
@@ -154,6 +176,13 @@ export default function Chat() {
           0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
           70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
           100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .message-fade-in {
+          animation: fadeIn 0.3s ease forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>

@@ -32,11 +32,12 @@ export default function GuidedMode() {
   }
 
   return (
-    <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '3rem', position: 'relative', justifyContent: 'center' }}>
+    <div className="glass-panel fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '3rem', position: 'relative', justifyContent: 'center' }}>
       
       <button 
         onClick={handleExit}
-        style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', padding: '0.5rem 1rem', borderRadius: 'var(--radius-xl)', background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}
+        className="action-btn"
+        style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', padding: '0.5rem 1rem', borderRadius: 'var(--radius-xl)', background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-primary)', transition: 'all 0.2s ease' }}
       >
         ✕ Exit Guided Mode
       </button>
@@ -54,7 +55,8 @@ export default function GuidedMode() {
           <button 
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            style={{ padding: '0.75rem 1.5rem', borderRadius: 'var(--radius-lg)', background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: currentIndex === 0 ? 'var(--text-secondary)' : 'var(--text-primary)', opacity: currentIndex === 0 ? 0.5 : 1 }}
+            className="action-btn"
+            style={{ padding: '0.75rem 1.5rem', borderRadius: 'var(--radius-lg)', background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: currentIndex === 0 ? 'var(--text-secondary)' : 'var(--text-primary)', opacity: currentIndex === 0 ? 0.5 : 1, transition: 'all 0.2s ease' }}
           >
             ← Previous
           </button>
@@ -67,7 +69,8 @@ export default function GuidedMode() {
 
           <button 
             onClick={currentIndex === steps.length - 1 ? handleExit : handleNext}
-            style={{ padding: '0.75rem 1.5rem', borderRadius: 'var(--radius-lg)', background: 'var(--primary-color)', border: 'none', color: 'white', fontWeight: 'bold' }}
+            className="action-btn"
+            style={{ padding: '0.75rem 1.5rem', borderRadius: 'var(--radius-lg)', background: 'var(--primary-color)', border: 'none', color: 'white', fontWeight: 'bold', transition: 'all 0.2s ease' }}
           >
             {currentIndex === steps.length - 1 ? 'Finish ✓' : 'Next Step →'}
           </button>

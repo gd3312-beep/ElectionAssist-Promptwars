@@ -59,8 +59,12 @@ export function processContext(extractedIntent, currentState, rawMessage) {
     nextPanel = 'map';
   } else if (msgLower.includes("how does voting work") || msgLower.includes("phases") || msgLower.includes("when is")) {
     nextPanel = 'timeline';
-  } else if (msgLower.includes("at the booth") || msgLower.includes("at the polling station")) {
+  } else if (msgLower.includes("at the booth") || msgLower.includes("at the polling station") || msgLower.includes("i am at the booth")) {
     nextStage = 'at_polling_station';
+    nextPanel = 'simulator';
+  } else if (msgLower.includes("i'm voting") || msgLower.includes("started voting") || msgLower.includes("inside the booth")) {
+    nextStage = 'voting';
+    nextPanel = 'simulator';
   }
 
   return { nextPanel, nextStage, nextAppView, systemAction };

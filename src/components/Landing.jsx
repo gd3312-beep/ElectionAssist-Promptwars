@@ -35,7 +35,7 @@ export default function Landing() {
   }
 
   return (
-    <div className="glass-panel" style={{ 
+    <div className="glass-panel fade-in" style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       alignItems: 'center', 
@@ -63,6 +63,7 @@ export default function Landing() {
 
         <button 
           onClick={() => dispatch({ type: 'SET_APP_VIEW', payload: 'chat' })}
+          className="action-btn"
           style={{ 
             width: '100%', 
             padding: '1rem', 
@@ -72,10 +73,8 @@ export default function Landing() {
             fontSize: '1.1rem',
             fontWeight: 'bold',
             boxShadow: 'var(--shadow-md)',
-            transition: 'transform 0.2s ease, background 0.2s ease'
+            transition: 'all 0.2s ease'
           }}
-          onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
-          onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
         >
           {state.user_profile ? `Continue as ${state.user_profile.name.split(' ')[0]}` : 'Skip & Continue as Guest'}
         </button>
@@ -85,7 +84,8 @@ export default function Landing() {
             onClick={() => {
                dispatch({ type: 'SET_APP_VIEW', payload: 'guided' })
             }}
-            style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-lg)', background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}
+            className="action-btn"
+            style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-lg)', background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-primary)', transition: 'all 0.2s ease' }}
           >
             🧭 Guided Mode
           </button>
@@ -94,7 +94,8 @@ export default function Landing() {
               dispatch({ type: 'SET_ACTIVE_PANEL', payload: 'map' })
               dispatch({ type: 'SET_APP_VIEW', payload: 'chat' })
             }}
-            style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-lg)', background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}
+            className="action-btn"
+            style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-lg)', background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-primary)', transition: 'all 0.2s ease' }}
           >
             📍 Find Booth
           </button>
