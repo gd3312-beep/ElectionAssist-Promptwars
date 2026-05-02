@@ -77,7 +77,7 @@ export default function Landing() {
           onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
           onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
         >
-          {state.user_profile ? \`Continue as \${state.user_profile.name.split(' ')[0]}\` : 'Skip & Continue as Guest'}
+          {state.user_profile ? `Continue as ${state.user_profile.name.split(' ')[0]}` : 'Skip & Continue as Guest'}
         </button>
 
         <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
