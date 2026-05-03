@@ -1,7 +1,26 @@
 import { apiChat } from './api.js'
 import { getFallbackResponse } from '../utils/fallbackEngine'
 
-export async function generateChatResponse(message, state) {
+// Fallback insights for offline mode or when API fails
+const LOCAL_TIPS = {
+  Delhi: [
+    '📋 Delhi uses EVM machines — all booths are fully equipped.',
+    '⏰ Polling hours: 7 AM – 6 PM across all constituencies.',
+    '🚇 Delhi Metro stations are near most major polling zones.'
+  ],
+  Mumbai: [
+    '🌧️ Mumbai coastal humidity can make queues faster — arrive early.',
+    '⏰ Polling hours: 7 AM – 6 PM.',
+    '🚌 BEST bus routes updated for easier booth access.'
+  ],
+  default: [
+    '✅ Always verify your name on the voter roll before election day.',
+    '🪪 Carry both your Voter ID and an alternate Photo ID.',
+    '⏰ Typical polling hours: 7:00 AM – 6:00 PM.'
+  ]
+};
+
+export async function generateResponse(message, state) {
   const systemPrompt = `
 You are ElectionAssist, a helpful, neutral, and precise election assistant.
 Current user language: ${state.user_language}. YOU MUST RESPOND IN THIS LANGUAGE.
@@ -13,60 +32,51 @@ User Context:
 
 Rules:
 1. Provide short, structured, step-by-step responses.
-2. Do not hallucinate local laws, but you MUST provide general knowledge about who is contesting or what election is happening if asked.
-3. If Easy Mode Active is true, you MUST use very simple vocabulary, short sentences, and be extremely easy to understand.
-4. YOU MUST prefix your conversational response with "Based on your current step..." if giving instructions or answering questions about the process.
-5. If the user seems unsure or hesitant about voting, provide encouragement and explain the importance of voting in simple terms.
-6. ACT LIKE YOU REMEMBER PREVIOUS CONTEXT. If the user mentioned they are a first-timer, or their location, use that in your response (e.g., "Since you are a first-time voter in ${state.location || 'your area'}...").
+2. If Easy Mode Active is true, use very simple vocabulary.
+3. YOU MUST prefix your conversational response with "Based on your current step..." if giving instructions.
 
 Return your response in a JSON format:
 {
   "text": "Your conversational response here",
   "extracted_intent": "one of: general_question, location_inquiry, requirements_inquiry, timeline_inquiry, at_polling_station, voting_process, local_awareness_inquiry, guided_mode_request, candidates_inquiry",
-  "extracted_location": "location if the user mentions one, else null",
-  "is_first_time": true/false if they mentioned it, else null
-}
-Ensure the output is strictly valid JSON without markdown wrapping.`
+  "extracted_location": "location if mentioned, else null",
+  "is_first_time": true/false if mentioned, else null
+}`;
 
   try {
-    const response = await apiChat(message, systemPrompt)
-    if (response && response.text && !response.error) {
+    const response = await apiChat(message, systemPrompt);
+    if (response && response.text) {
       if (!response.text.startsWith("Based on your current step")) {
         response.text = "Based on your current step... " + response.text;
       }
-      return response
+      return response;
     }
-    throw new Error(response.error || 'Invalid response')
+    throw new Error('Invalid response');
   } catch (error) {
-    console.warn('AI Unavailable, using fallback engine:', error.message)
-    
-    // Get a smart fallback response based on keywords and stage
-    const fallback = getFallbackResponse(message, state)
-    
-    return {
-      ...fallback,
-      text: `AI is temporarily unavailable. I’ll guide you using built-in assistance.\n\n${fallback.text}`,
-      isFallback: true
-    }
-  }
-}
-
-export async function generateContent(prompt, state) {
-  try {
-    const response = await apiChat(prompt, "You are a helpful assistant.");
-    return response.text || "No content generated.";
-  } catch (error) {
-    console.warn("generateContent failed, using fallback:", error);
-    return "Based on your current step, I'm unable to generate dynamic content right now.";
+    console.warn('AI Unavailable, using fallback engine:', error.message);
+    const fallback = getFallbackResponse(message, state);
+    return { ...fallback, isFallback: true };
   }
 }
 
 export async function summarizeIntent(text) {
   try {
-    const response = await apiChat(text, "Summarize the user's intent in 2-3 words.");
+    const response = await apiChat(text, "Summarize the user's intent in 2-3 words. Return as plain text.");
     return response.text || "general_inquiry";
   } catch (error) {
-    console.warn("summarizeIntent failed, using fallback:", error);
     return "general_inquiry";
+  }
+}
+
+export async function getLocationInsights(location) {
+  try {
+    const prompt = `Provide 3 short, emoji-rich voting tips for ${location}. Return as JSON: { "tips": ["tip1", "tip2", "tip3"] }`;
+    const response = await apiChat(prompt, "You are a helpful election assistant.");
+    const data = JSON.parse(response.text);
+    return { tips: data.tips || [], source: 'gemini' };
+  } catch (error) {
+    console.warn("getLocationInsights failed, using local fallback");
+    const city = Object.keys(LOCAL_TIPS).find(c => location?.toLowerCase().includes(c.toLowerCase())) || 'default';
+    return { tips: LOCAL_TIPS[city], source: 'local' };
   }
 }

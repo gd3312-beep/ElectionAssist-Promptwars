@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useAppContext } from '../context/AppContext'
 import { MapPin, ExternalLink, Search, Navigation, Eye, Map } from 'lucide-react'
-import { getLocationInsights } from '../utils/gemini'
+import { getLocationInsights } from '../services/gemini'
+import { trackEvent } from '../utils/analyticsHelper'
 
 /**
  * MapView — Polling Booth Finder
@@ -14,6 +15,10 @@ import { getLocationInsights } from '../utils/gemini'
 export default function MapView() {
   const { state, dispatch } = useAppContext()
   const [locationInput, setLocationInput] = useState('')
+
+  React.useEffect(() => {
+    trackEvent('map_opened', { timestamp: Date.now() })
+  }, [])
   const [activeTab, setActiveTab] = useState('map') // 'map' | 'streetview'
   const [insights, setInsights] = useState(null)
   const [loadingInsights, setLoadingInsights] = useState(false)

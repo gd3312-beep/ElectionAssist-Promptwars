@@ -1,6 +1,7 @@
 import React from 'react'
 import { useAppContext } from '../context/AppContext'
 import { CheckCircle, AlertCircle } from 'lucide-react'
+import { trackEvent } from '../utils/analyticsHelper'
 
 const TASKS = [
   { id: 'verify_reg',   emoji: '📋', label: 'Check Registration', required: true  },
@@ -12,6 +13,10 @@ const TASKS = [
 
 export default function Checklist() {
   const { state, dispatch } = useAppContext()
+
+  React.useEffect(() => {
+    trackEvent('checklist_used', { timestamp: Date.now() })
+  }, [])
 
   const tasks = TASKS.filter(t => !t.firstTimeOnly || state.first_time_voter)
 

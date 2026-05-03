@@ -4,6 +4,7 @@ import { getFallbackResponse } from '../utils/fallbackEngine'
 import { processContext } from '../utils/contextEngine'
 import { checkMisinformation } from '../utils/misinformationHelper'
 import { speakText, startSpeechRecognition } from '../utils/speechHelper'
+import { trackEvent } from '../utils/analyticsHelper'
 import { Send, Mic, Volume2 } from 'lucide-react'
 
 const CHIPS = [
@@ -66,6 +67,9 @@ export default function Chat() {
 
     // ── Generate local response (always works, no network needed) ────────────
     const response = getFallbackResponse(textToSend, state)
+    
+    // Track query event
+    trackEvent('user_query', { query: textToSend })
 
     // ── Apply context side-effects ────────────────────────────────────────────
     if (response.extracted_location) {

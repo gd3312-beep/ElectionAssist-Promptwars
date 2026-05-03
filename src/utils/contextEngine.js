@@ -35,24 +35,27 @@ export function processContext(extractedIntent, currentState, rawMessage) {
   }
 
   // 2. Keyword & Stage-based Fallbacks (Smart Behavior)
-  if (msgLower.includes("what next") || msgLower.includes("now what") || msgLower.includes("help me vote") || msgLower.includes("what should i do")) {
-    if (nextStage === 'learning' || nextStage === 'registered') {
+  // Only apply if intent is general or unrecognized
+  if (!extractedIntent || extractedIntent === 'general_question') {
+    if (msgLower.includes("what next") || msgLower.includes("now what") || msgLower.includes("help me vote") || msgLower.includes("what should i do")) {
+      if (nextStage === 'learning' || nextStage === 'registered') {
+        nextPanel = 'checklist';
+      } else if (nextStage === 'at_polling_station') {
+        nextPanel = 'simulator';
+        nextStage = 'voting';
+      } else if (nextStage === 'voting') {
+        nextStage = 'completed';
+        nextPanel = 'timeline';
+      }
+    } else if (msgLower.includes("where") || msgLower.includes("find polling") || msgLower.includes("location") || msgLower.includes("booth")) {
+      nextPanel = 'map';
+    } else if (msgLower.includes("document") || msgLower.includes("requirements") || msgLower.includes("id card")) {
       nextPanel = 'checklist';
-    } else if (nextStage === 'at_polling_station') {
+    } else if (/\bhow\b/.test(msgLower) || msgLower.includes("process") || msgLower.includes("machine")) {
       nextPanel = 'simulator';
-      nextStage = 'voting';
-    } else if (nextStage === 'voting') {
-      nextStage = 'completed';
-      nextPanel = 'timeline';
+    } else if (msgLower.includes("candidate") || msgLower.includes("contesting")) {
+      nextPanel = 'candidates';
     }
-  } else if (msgLower.includes("where") || msgLower.includes("find polling") || msgLower.includes("location") || msgLower.includes("booth")) {
-    nextPanel = 'map';
-  } else if (msgLower.includes("document") || msgLower.includes("requirements") || msgLower.includes("id card")) {
-    nextPanel = 'checklist';
-  } else if (msgLower.includes("how") || msgLower.includes("process") || msgLower.includes("machine")) {
-    nextPanel = 'simulator';
-  } else if (msgLower.includes("candidate") || msgLower.includes("contesting")) {
-    nextPanel = 'candidates';
   }
 
   return { nextPanel, nextStage, nextAppView, systemAction };

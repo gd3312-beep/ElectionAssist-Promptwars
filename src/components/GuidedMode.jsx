@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useAppContext } from '../context/AppContext'
-import { generateChatResponse } from '../services/gemini'
-import { speakText } from '../utils/speechHelper'
+import { generateResponse } from '../services/gemini'
+import { speakText, startSpeechRecognition } from '../utils/speechHelper'
+import { trackEvent } from '../utils/analyticsHelper'
 import { Send, Mic, Volume2, Loader, HelpCircle, X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { startSpeechRecognition } from '../utils/speechHelper'
 
 const STEPS = [
   {
@@ -65,6 +65,10 @@ export default function GuidedMode() {
     helpEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [helpMessages, isTyping])
 
+  useEffect(() => {
+    trackEvent('guided_mode_started', { timestamp: Date.now() })
+  }, [])
+
   // Reset help messages when step changes
   useEffect(() => {
     setHelpMessages([])
@@ -92,7 +96,7 @@ export default function GuidedMode() {
         last_intent: currentStep.contextHint,
         user_stage: currentStep.id,
       }
-      const response = await generateChatResponse(text, enrichedState)
+      const response = await generateResponse(text, enrichedState)
       setHelpMessages(m => [...m, { role: 'assistant', text: response.text }])
       speakText(response.text, state.user_language)
     } catch {
