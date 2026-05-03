@@ -54,8 +54,21 @@ export default function MapView() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {!apiKey ? (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.05)', color: 'var(--text-secondary)' }}>
-            Missing Google Maps API Key
+          <div style={{ 
+            position: 'absolute', inset: 0, 
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', 
+            background: 'var(--card-bg)', color: 'var(--text-secondary)',
+            textAlign: 'center', padding: '2rem'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📍</div>
+            <h3 style={{ color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>Map Guidance</h3>
+            <p style={{ maxWidth: '280px', fontSize: '0.9rem', lineHeight: 1.5 }}>
+              Map will appear when location is provided. 
+              <br/><br/>
+              <strong>Try asking:</strong><br/>
+              "Find polling booth near me"
+            </p>
           </div>
         ) : (
           <>

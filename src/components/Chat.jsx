@@ -46,22 +46,32 @@ export default function Chat() {
       const response = await generateChatResponse(textToSend, state)
       const { nextPanel, nextStage, nextAppView } = processContext(response.extracted_intent || '', state, textToSend)
 
-      dispatch({ type: 'SET_USER_STAGE', payload: nextStage })
-      if (nextPanel) dispatch({ type: 'SET_ACTIVE_PANEL', payload: nextPanel })
+      // Apply context changes
+      if (nextStage && nextStage !== state.user_stage) dispatch({ type: 'SET_USER_STAGE', payload: nextStage })
+      if (nextPanel && nextPanel !== state.active_panel) dispatch({ type: 'SET_ACTIVE_PANEL', payload: nextPanel })
       if (nextAppView && nextAppView !== state.app_view) dispatch({ type: 'SET_APP_VIEW', payload: nextAppView })
       if (response.extracted_location) dispatch({ type: 'SET_LOCATION', payload: response.extracted_location })
+      
       if (response.is_first_time) {
         dispatch({ type: 'SET_FIRST_TIME_VOTER', payload: true })
         dispatch({ type: 'SET_ACTIVE_PANEL', payload: 'checklist' })
       }
 
-      dispatch({ type: 'ADD_MESSAGE', payload: { role: 'assistant', text: response.text } })
+      dispatch({ type: 'ADD_MESSAGE', payload: { 
+        role: 'assistant', 
+        text: response.text, 
+        isFallback: response.isFallback 
+      } })
+      
       setIsTyping(false)
       speakText(response.text, state.user_language)
     } catch (error) {
-      console.error('Gemini Error:', error)
-      dispatch({ type: 'ADD_MESSAGE', payload: { role: 'assistant', text: "I'm having trouble connecting. Please try again in a moment.", isWarning: true } })
       setIsTyping(false)
+      dispatch({ type: 'ADD_MESSAGE', payload: { 
+        role: 'assistant', 
+        text: "AI is temporarily unavailable. I’ll guide you using built-in assistance.\n\n👉 Based on your current step, I recommend checking the Voting Journey panel for next steps.",
+        isWarning: true 
+      } })
     }
   }
 

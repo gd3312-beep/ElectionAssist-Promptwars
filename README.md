@@ -10,29 +10,24 @@ An AI-powered civic assistant that guides users through the entire voting journe
 
 | Feature | Description |
 |---------|-------------|
-| 🤖 **AI Chat (Gemini 1.5 Flash)** | Context-aware responses via a secure server-side proxy |
-| 🧭 **Voting Journey Tracker** | Visual step-by-step progress: Registered → At Booth → Voted |
-| 🎮 **Guided Mode + Inline Help** | Step-by-step wizard with AI chat assistant at every step |
-| 📋 **Smart Checklist** | Personalized document checklist with readiness score (%) |
-| 🗺️ **Polling Booth Map** | Google Maps embed with estimated distance & travel time |
-| 🎙️ **Voice-First Interaction** | Speak your question; AI auto-responds |
-| 🔊 **Text-to-Speech** | AI reads responses aloud |
-| 👤 **Sign Up + Backend Login** | Simulated authentication with email/phone stored in a lightweight backend |
-| ✏️ **Voter ID Service** | Real-feeling Voter ID application flow with status tracking |
-| 🗳️ **Candidate Info** | Real-time fetch of contesting candidates |
-| 🌐 **Multilingual** | Toggle between English and regional languages |
-| 🧠 **Easy Mode** | Larger fonts, simpler AI language for low-literacy users |
+| 🤖 **Hybrid AI System** | Smart Gemini-powered chat with a robust rule-based **fallback system** that works even when AI services are offline. |
+| 🛡️ **Failure-Proof Guidance** | Built-in intelligence providing instructions like "Based on your current step..." regardless of connectivity. |
+| 🧭 **Interactive Journey** | A clickable, visual timeline with stage-specific FAQs, key actions, and next steps for every phase of the election. |
+| 👤 **User-Specific Persistence** | All state (stage, location, checklist) is stored securely in **localStorage** per user session. Refreshing never loses progress. |
+| 🗺️ **Smart Map UI** | Polling booth finder with intelligent fallbacks and guided instructions if maps are unavailable. |
+| 🧠 **Context-Aware Chat** | Recognizes queries like "what next" or "help me vote" and responds accurately based on your current journey stage. |
+| 🎙️ **Voice-First Interaction** | Speak your questions; AI/System auto-responds with Text-to-Speech support. |
+| 🧩 **Voter ID Simulation** | Real-feeling Voter ID application flow with live status tracking. |
 
 ---
 
-## 🚀 Tech Stack
+## 🚀 Architecture
 
-- **Frontend:** React 18 + Vite
-- **Backend:** Node.js + Express (Minimalist <100 lines)
-- **AI:** Google Gemini 1.5 Flash (Server-side proxy for security)
-- **Maps:** Google Maps Embed API
-- **Styling:** Vanilla CSS with Glassmorphism design
-- **Deployment:** Google Cloud Run (Dockerized Express server serving static React dist)
+- **Frontend:** React 18 + Vite (State management via AppContext + useReducer)
+- **Persistence:** LocalStorage (User-specific session isolation)
+- **Intelligence:** Hybrid (Google Gemini 1.5 Flash Proxy + Rule-based Fallback Engine)
+- **Styling:** Premium Glassmorphism UI (Vanilla CSS)
+- **Security:** Zero-key client-side architecture (All keys handled via server-side environment variables)
 
 ---
 
@@ -63,54 +58,11 @@ npm start      # Starts Express Backend on :8080
 
 ---
 
-## 🐳 Docker & Cloud Run Deployment
+## 🔐 Privacy & Security
 
-The app uses a Node.js/Express server to serve both the API and the React frontend.
-
-### Security Note
-**DO NOT hardcode API keys in the Dockerfile.** Doing so will cause Google to automatically disable your keys for security. Always pass them as environment variables during deployment.
-
-### Deployment Command
-
-```bash
-# Deploy to Cloud Run
-gcloud run deploy electionassist \
-  --source . \
-  --project YOUR_PROJECT_ID \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars="GEMINI_API_KEY=your_new_key_here" \
-  --set-build-env-vars="VITE_GEMINI_API_KEY=your_new_key_here,VITE_GOOGLE_MAPS_API_KEY=your_maps_key,VITE_GOOGLE_CLIENT_ID=your_client_id" \
-  --quiet
-```
-
----
-
-## 🏗️ Project Structure
-
-```
-├── server/
-│   └── index.js                  # Minimal Express backend (API + Static server)
-├── src/
-│   ├── components/
-│   │   ├── Chat.jsx              # Main AI chat interface
-│   │   ├── CandidatesPanel.jsx   # Card list of contesting candidates
-│   │   ├── VoterRegistrationSimulation.jsx # Voter ID application service
-│   │   └── ...
-│   ├── services/
-│   │   ├── api.js                # Frontend client for the Express backend
-│   │   └── gemini.js             # AI logic (proxies to backend)
-│   └── ...
-└── Dockerfile                    # Multi-stage build (Vite build -> Express server)
-```
-
----
-
-## 🔐 Privacy & Safety
-
-- User profiles and applications are stored in **server-side memory** (reset on restart for demo purposes).
-- API keys are handled server-side to prevent browser exposure.
-- All government services are clearly labelled as **simulations**.
+- **No Key Exposure:** All API keys are handled server-side. They never appear in the client bundle, commit messages, or README.
+- **Data Privacy:** User profiles and voting progress are stored **only in the browser's localStorage** and the minimal backend's volatile memory.
+- **Simulation:** All government services are clearly labelled as **simulations** for educational purposes.
 
 ---
 

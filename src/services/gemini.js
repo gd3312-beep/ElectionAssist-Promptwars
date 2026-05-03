@@ -1,4 +1,5 @@
 import { apiChat } from './api.js'
+import { getFallbackResponse } from '../utils/fallbackEngine'
 
 export async function generateChatResponse(message, state) {
   const systemPrompt = `
@@ -29,13 +30,20 @@ Ensure the output is strictly valid JSON without markdown wrapping.`
 
   try {
     const response = await apiChat(message, systemPrompt)
-    if (response.error) throw new Error(response.error)
-    return response
+    if (response && response.text && !response.error) {
+      return response
+    }
+    throw new Error(response.error || 'Invalid response')
   } catch (error) {
-    console.error('Chat Error:', error)
+    console.warn('AI Unavailable, using fallback engine:', error.message)
+    
+    // Get a smart fallback response based on keywords and stage
+    const fallback = getFallbackResponse(message, state)
+    
     return {
-      text: `Unable to reach assistant: ${error.message}`,
-      intent: 'error',
+      ...fallback,
+      text: `AI is temporarily unavailable. I’ll guide you using built-in assistance.\n\n${fallback.text}`,
+      isFallback: true
     }
   }
 }

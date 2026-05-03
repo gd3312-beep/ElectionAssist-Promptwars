@@ -66,16 +66,41 @@ export function AppProvider({ children }) {
     try {
       const saved = localStorage.getItem('electionAssistState')
       if (saved) {
-        dispatch({ type: 'LOAD_STATE', payload: JSON.parse(saved) })
+        const parsed = JSON.parse(saved)
+        // Ensure critical fields are loaded correctly
+        dispatch({ 
+          type: 'LOAD_STATE', 
+          payload: {
+            user_stage: parsed.user_stage || initialState.user_stage,
+            first_time_voter: parsed.first_time_voter ?? initialState.first_time_voter,
+            location: parsed.location || initialState.location,
+            checklist_status: parsed.checklist_status || initialState.checklist_status,
+            messages: parsed.messages || [],
+            user_profile: parsed.user_profile || null,
+            simple_mode: parsed.simple_mode ?? initialState.simple_mode,
+            accessibility_mode: parsed.accessibility_mode ?? initialState.accessibility_mode,
+            app_view: parsed.app_view || initialState.app_view,
+          } 
+        })
       }
     } catch (e) {
-      console.error("Failed to load state", e)
+      console.warn("Could not restore session state", e)
     }
   }, [])
 
-  // Save to localStorage on change (except messages to save space, or limit them)
+  // Save to localStorage on change
   useEffect(() => {
-    const stateToSave = { ...state, messages: state.messages.slice(-20) } // Keep last 20 msgs
+    const stateToSave = { 
+      user_stage: state.user_stage,
+      first_time_voter: state.first_time_voter,
+      location: state.location,
+      checklist_status: state.checklist_status,
+      messages: state.messages.slice(-15), // Keep a small history for context
+      user_profile: state.user_profile,
+      simple_mode: state.simple_mode,
+      accessibility_mode: state.accessibility_mode,
+      app_view: state.app_view,
+    }
     localStorage.setItem('electionAssistState', JSON.stringify(stateToSave))
     
     // Apply accessibility theme
