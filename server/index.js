@@ -70,7 +70,33 @@ app.post('/api/chat', async (req, res) => {
     res.json(JSON.parse(raw))
   } catch (e) {
     console.error('Gemini error:', e.message)
-    res.status(500).json({ text: `AI error: ${e.message}`, intent: 'error' })
+    res.status(500).json({ text: 'I will guide you based on your current situation.', intent: 'fallback' })
+  }
+})
+
+// POST /api/location-insights — Gemini-powered voting tips for a given location
+app.post('/api/location-insights', async (req, res) => {
+  const { location } = req.body
+  if (!location) return res.status(400).json({ tips: [] })
+
+  if (!ai) {
+    // No Gemini key — return 503 so the client uses its local fallback
+    return res.status(503).json({ tips: [] })
+  }
+
+  try {
+    const model = ai.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      generationConfig: { temperature: 0.3, responseMimeType: 'application/json' },
+    })
+    const prompt = `You are an Indian election civic assistant. Give 3 practical, specific voting tips for someone in "${location}" during an Indian election. Return JSON: { "tips": ["tip1", "tip2", "tip3"] }. Tips must be concise, actionable, and use relevant emojis.`
+    const result = await model.generateContent(prompt)
+    const raw = result.response.text()
+    const parsed = JSON.parse(raw)
+    res.json({ tips: parsed.tips || [], source: 'gemini' })
+  } catch (e) {
+    console.error('Location insights error:', e.message)
+    res.status(500).json({ tips: [] })
   }
 })
 

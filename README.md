@@ -2,68 +2,134 @@
 
 > **Live Demo:** [https://electionassist-570282205129.us-central1.run.app](https://electionassist-570282205129.us-central1.run.app)
 
-**ElectionAssist** is an intelligent, context-aware civic assistant built for the **Prompt Wars Virtual (Google x Hack2Skill)** hackathon. It guides citizens through the entire Indian election process — from registration to casting their vote — ensuring a smooth, accessible, and highly reliable experience.
+**ElectionAssist** is an intelligent, context-aware civic assistant built for the **Prompt Wars Virtual (Google x Hack2Skill)** hackathon. It guides citizens through the entire Indian election process — from voter registration to casting their ballot — ensuring a smooth, accessible, and failure-proof experience.
+
+---
 
 ## 🎯 Chosen Vertical
 **Election Process Education**
-Our platform directly addresses the need for clear, step-by-step guidance to help voters navigate the complexities of the electoral process.
 
-## 🧠 Architecture: The Fallback-First Intelligence
-To guarantee 100% uptime and a flawless user experience, ElectionAssist employs a **Hybrid AI Architecture**:
+Our platform addresses the critical need for clear, step-by-step guidance that helps all voters — especially first-timers — navigate the complexities of the Indian electoral process.
 
-1. **Primary Intelligence (Local Fallback Engine):** A robust, rule-based NLP engine running entirely in the browser. It detects user intents (e.g., "what next", "documents", "location") and provides instant, context-aware guidance. Every contextual response is explicitly anchored with **"Based on your current step..."**. This ensures the app works flawlessly and intelligently even without internet access or API keys.
-2. **Secondary Intelligence (Gemini Optional):** When available, Google Gemini 2.0 Flash is used in the background to silently enhance responses. If Gemini times out or is unavailable, the app seamlessly serves the local response with **zero error messages** shown to the user.
+---
+
+## 🧠 Architecture: Fallback-First Hybrid AI
+
+To guarantee 100% reliability, ElectionAssist uses a **two-layer intelligence model**:
+
+| Layer | Technology | Behaviour |
+|---|---|---|
+| **Primary** | Local Fallback Engine (`fallbackEngine.js`) | Always runs. Instant, deterministic, offline-capable. |
+| **Secondary** | Google Gemini 2.0 Flash | Optional enhancement. Silent failure. Zero UI errors. |
+
+Every contextual response is explicitly anchored with **"Based on your current step…"** to signal AI-driven, stage-aware guidance.
+
+---
+
+## ✨ Key Features
+
+- **Context-Aware Guidance:** The assistant knows your journey stage (Preparation → At Booth → Voted) and tailors every response accordingly.
+- **Interactive Journey Steps:** A clickable visual timeline with rich modals showing actions, FAQs, and pro-tips per stage.
+- **Polling Booth Finder:** Embedded Google Maps + Street View tab for real-world location preview, with GPS geolocation and graceful fallback.
+- **AI Location Insights:** Gemini-enhanced voting tips per city/area, with deterministic local fallback.
+- **Multilingual & Voice-Enabled:** Voice input (`SpeechRecognition`) and text-to-speech (`SpeechSynthesis`) for accessibility.
+- **Misinformation Guard:** Detects and flags known false claims (e.g., "vote by text") before responding.
+- **Privacy First:** All user state stored in `localStorage` — no external user database required.
+
+---
+
+## 🌐 Google Services Integration
+
+All Google Services are **optional and fail-safe** — removing any API key does not break the application.
+
+| Service | Usage | Fallback |
+|---|---|---|
+| **Google Gemini 2.0 Flash** | Conversational intelligence via `/api/chat`; location-specific voting tips via `/api/location-insights` | Local fallback engine + static tips |
+| **Google Maps Embed API** | Embedded polling booth search map (`iframe`) | Deep-link to Google Maps website |
+| **Google Maps Street View Embed** | Real-world street-level preview of polling area | Deep-link to Google Maps Street View |
+| **Google Sign-In (GSI)** | Optional user profile login via OAuth | Anonymous session via `localStorage` |
+
+Attribution labels ("Powered by Google Maps", "AI enhanced by Gemini") are visible in the UI to demonstrate active integration.
+
+---
 
 ## ⚖️ Evaluation Criteria Alignment
 
 ### 1. Decision-Making Logic (Context Engine)
-Our core logic (`src/utils/contextEngine.js` and `fallbackEngine.js`) doesn't just answer questions; it drives the user journey.
-- **Intent Detection:** Keywords map user queries to specific actions (e.g., "where" triggers location services, "how to" triggers the voting simulator).
-- **State Mutability:** Responses directly alter the user's `active_panel` and `user_stage`. For example, asking about documents automatically opens the Checklist panel.
+- `src/utils/contextEngine.js` routes user intents to specific UI panels (Checklist, Map, Simulator, Candidates).
+- `src/utils/fallbackEngine.js` generates stage-specific responses. All 9 intent types produce deterministic outputs.
+- Responses directly mutate app state — e.g., asking "where is my booth?" also opens the Map panel and fetches location insights.
 
-### 2. Testing Strategy (Fallback Validation)
-The application is rigorously designed to be tested entirely offline or without API keys.
-- **Deterministic Offline Testing:** Disabling network connections or removing API keys guarantees the fallback engine takes over. Queries like "I am at polling booth", "what next?", or "documents needed" will always yield deterministic, stage-appropriate guidance.
-- **Zero-Error Tolerance:** We have explicitly purged all user-facing errors. If a service fails, the system defaults to: *"I will guide you based on your current situation."*
+### 2. Testing Strategy
+Tests are written with **Vitest** + **@testing-library/react** and cover all core logic utilities:
+
+```bash
+npm test
+```
+
+| Test File | Coverage |
+|---|---|
+| `fallbackEngine.test.js` | All 9 intents, all 5 stages, "Based on your current step" prefix rule, location extraction, first-time voter detection |
+| `contextEngine.test.js` | Intent-to-panel routing, stage transitions, keyword fallback routing |
+| `misinformationHelper.test.js` | All known false claim patterns, clean pass-through for valid queries |
 
 ### 3. Accessibility Features
-Inclusive design is fundamental to civic tech:
-- **ARIA Labeling:** All interactive elements utilize proper ARIA tags for screen readers.
-- **Multimodal Input:** Voice-to-text integration allows users to speak their queries, while Text-to-Speech reads the guidance aloud.
-- **"Easy Mode":** A toggle that significantly increases font sizes and simplifies terminology for low-literacy users.
-- **High Contrast Support:** Specialized CSS variables ensure readability for visually impaired users.
+- **ARIA Labels:** All interactive elements have `aria-label` and `aria-pressed` attributes.
+- **Voice Input/Output:** Microphone button triggers `SpeechRecognition`; all responses can be read aloud via `SpeechSynthesis`.
+- **Easy Mode:** Toggle in header increases font sizes globally for low-literacy users.
+- **High-Contrast Mode:** CSS variable overrides applied for visually impaired users.
+- **Simple Language:** Pre-written responses avoid jargon and use numbered steps.
 
-### 4. Google Services Integration
-- **Gemini 2.0 Flash:** Used as an asynchronous, non-blocking enhancement layer for chat.
-- **Google Maps Embed API:** Integrated into the Polling Booth Finder, complete with graceful deep-link fallbacks if keys are absent.
+### 4. Efficiency & Performance
+- **Bundle < 10MB:** No heavy SDKs. Maps and Street View use lightweight `<iframe>` embeds only.
+- **Instant Responses:** Local fallback engine responds in ~400ms with a brief "thinking" animation.
+- **Smart Caching:** `localStorage` persists user journey so state survives page reloads without API calls.
+- **No Heavy Libraries:** Only `lucide-react` + `react` in production dependencies.
 
-### 5. Efficiency & Performance
-- **Ultra-Lightweight Bundle:** The entire project remains under 10MB by utilizing pure React and Vanilla CSS over heavy component libraries.
-- **Storage:** Uses browser `localStorage` to isolate user context and persist journeys without requiring a heavy backend database.
+### 5. Security
+- **Zero Client-Side Keys:** No API keys in React source code. All Gemini calls are server-proxied via `server/index.js`.
+- **Environment Variables Only:** All secrets managed via `.env` (gitignored) or Cloud Run `--set-env-vars`.
+- **Misinformation Protection:** Active detection of known voter misinformation patterns.
+
+---
 
 ## 🚀 Setup & Local Development
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/gd3312-beep/ElectionAssist-Promptwars.git
-   cd ElectionAssist-Promptwars
-   ```
+### Prerequisites
+- Node.js 18+
+- Git
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+### Installation
 
-3. **Environment Setup (Optional):**
-   Copy `.env.example` to `.env`. The app works perfectly without keys, but you can add your Gemini and Google Maps keys for enhanced features.
+```bash
+# 1. Clone the repository
+git clone https://github.com/gd3312-beep/ElectionAssist-Promptwars.git
+cd ElectionAssist-Promptwars
 
-4. **Run the Application:**
-   ```bash
-   npm run dev
-   ```
+# 2. Install dependencies
+npm install
 
-## 🔐 Security Note
-**No API keys are exposed in the client-side code.** All sensitive credentials are managed via server-side environment variables or injected securely during deployment.
+# 3. Environment setup (optional — app works without keys)
+cp .env.example .env
+# Add your VITE_GOOGLE_MAPS_API_KEY and GEMINI_API_KEY if available
+
+# 4. Run development server
+npm run dev
+
+# 5. Run tests
+npm test
+```
+
+### Run Backend (Optional)
+```bash
+npm start   # Express server on :8080
+```
 
 ---
+
+## 🔐 Security Note
+**No API keys are in client-side code.** All sensitive credentials are server-side only, injected via environment variables at deployment time.
+
+---
+
 *Built with ❤️ for #BuildwithAI and #PromptWarsVirtual*
