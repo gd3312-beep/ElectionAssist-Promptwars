@@ -1,71 +1,60 @@
-# 🗳️ ElectionAssist — AI Civic Guidance Platform
+# 🗳️ ElectionAssist — Your Smart Voting Guide
 
-> **Live Demo:** https://electionassist-570282205129.us-central1.run.app
+> **Live Demo:** [https://electionassist-570282205129.us-central1.run.app](https://electionassist-570282205129.us-central1.run.app)
 
-An AI-powered civic assistant that guides users through the entire voting journey — from registration to casting their vote — with voice interaction, multilingual support, and real-time step-by-step guidance.
+**ElectionAssist** is an intelligent, context-aware civic assistant built for the **Prompt Wars Virtual (Google x Hack2Skill)** hackathon. It guides citizens through the entire Indian election process — from registration to casting their vote — ensuring a smooth, accessible, and highly reliable experience.
 
----
+## 🎯 Chosen Vertical
+**Election Process Education**
+Our platform directly addresses the need for clear, step-by-step guidance to help voters navigate the complexities of the electoral process.
+
+## 🧠 Architecture: The Fallback-First Intelligence
+To guarantee 100% uptime and a flawless user experience, ElectionAssist employs a **Hybrid AI Architecture**:
+
+1. **Primary Intelligence (Local Fallback Engine):** A robust, rule-based NLP engine running entirely in the browser. It detects user intents (e.g., "what next", "documents", "location") and provides instant, context-aware guidance ("Based on your current step..."). **This ensures the app works flawlessly even without internet access or API keys.**
+2. **Secondary Intelligence (Gemini Optional):** When available, Google Gemini 2.0 Flash is used in the background to silently enhance responses. If Gemini times out or is unavailable, the app seamlessly serves the local response with zero error messages shown to the user.
 
 ## ✨ Key Features
 
-| Feature | Description |
-|---------|-------------|
-| 🤖 **Hybrid AI System** | Smart Gemini-powered chat with a robust rule-based **fallback system** that works even when AI services are offline. |
-| 🛡️ **Failure-Proof Guidance** | Built-in intelligence providing instructions like "Based on your current step..." regardless of connectivity. |
-| 🧭 **Interactive Journey** | A clickable, visual timeline with stage-specific FAQs, key actions, and next steps for every phase of the election. |
-| 👤 **User-Specific Persistence** | All state (stage, location, checklist) is stored securely in **localStorage** per user session. Refreshing never loses progress. |
-| 🗺️ **Smart Map UI** | Polling booth finder with intelligent fallbacks and guided instructions if maps are unavailable. |
-| 🧠 **Context-Aware Chat** | Recognizes queries like "what next" or "help me vote" and responds accurately based on your current journey stage. |
-| 🎙️ **Voice-First Interaction** | Speak your questions; AI/System auto-responds with Text-to-Speech support. |
-| 🧩 **Voter ID Simulation** | Real-feeling Voter ID application flow with live status tracking. |
+- **Context-Aware Guidance:** The assistant knows your current stage (e.g., "Preparation" vs. "At the Booth") and tailors its advice accordingly.
+- **Interactive Journey Steps:** A visual timeline tracks your progress. Clicking any step reveals key actions, FAQs, and pro-tips for that stage.
+- **Smart Polling Booth Finder:** A map interface that accepts manual location input, uses browser geolocation, and gracefully falls back to Google Maps deep-links if API keys are missing.
+- **Multilingual & Voice-Enabled:** Supports voice input and text-to-speech, catering to diverse linguistic needs and improving accessibility.
+- **Zero API Key Dependency:** The application is fully functional and intelligent out-of-the-box, without requiring any external AI or Map APIs.
+- **Privacy First:** All user state (stage, location, checklist) is stored securely in the browser's `localStorage`.
+
+## 🛠️ Technical Implementation & Assumptions
+- **Frontend:** React 18 + Vite. The bundle is lightweight (<10MB) and highly performant.
+- **Backend (Optional):** A minimal Express server (`server/index.js`) is included to safely proxy Gemini requests and serve the built React app.
+- **Assumptions:** We assume users may have intermittent connectivity. Therefore, the core guidance logic is bundled locally, and error messages are suppressed in favor of helpful fallbacks.
+
+## 🚀 Setup & Local Development
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/gd3312-beep/ElectionAssist-Promptwars.git
+   cd ElectionAssist-Promptwars
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup (Optional):**
+   Copy `.env.example` to `.env`. The app works perfectly without keys, but you can add your Gemini and Google Maps keys for enhanced features.
+
+4. **Run the Application:**
+   ```bash
+   # Terminal 1: Start the frontend development server
+   npm run dev
+
+   # Terminal 2: Start the backend server (optional)
+   npm start
+   ```
+
+## 🔐 Security Note
+**No API keys are exposed in the client-side code.** All sensitive credentials are managed via server-side environment variables or injected securely during deployment.
 
 ---
-
-## 🚀 Architecture
-
-- **Frontend:** React 18 + Vite (State management via AppContext + useReducer)
-- **Persistence:** LocalStorage (User-specific session isolation)
-- **Intelligence:** Hybrid (Google Gemini 1.5 Flash Proxy + Rule-based Fallback Engine)
-- **Styling:** Premium Glassmorphism UI (Vanilla CSS)
-- **Security:** Zero-key client-side architecture (All keys handled via server-side environment variables)
-
----
-
-## 🛠️ Local Development
-
-### Prerequisites
-- Node.js 18+
-- A Google Gemini API Key ([Get one](https://aistudio.google.com/))
-
-### Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/gd3312-beep/ElectionAssist-Promptwars.git
-cd ElectionAssist-Promptwars
-
-# Install dependencies
-npm install
-
-# Create your .env file
-cp .env.example .env
-# Edit .env and add your API keys
-
-# Start the dev server (Frontend + Backend)
-npm run dev    # Starts Vite
-npm start      # Starts Express Backend on :8080
-```
-
----
-
-## 🔐 Privacy & Security
-
-- **No Key Exposure:** All API keys are handled server-side. They never appear in the client bundle, commit messages, or README.
-- **Data Privacy:** User profiles and voting progress are stored **only in the browser's localStorage** and the minimal backend's volatile memory.
-- **Simulation:** All government services are clearly labelled as **simulations** for educational purposes.
-
----
-
-## 📄 License
-
-MIT © 2026 ElectionAssist Team
+*Built with ❤️ for #BuildwithAI and #PromptWarsVirtual*

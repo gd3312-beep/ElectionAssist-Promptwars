@@ -14,44 +14,45 @@ const CHIPS = [
   { label: '✏️ Apply Voter ID',   action: 'registration' },
 ]
 
-// Thinking dots animation component
 function ThinkingDots() {
   return (
-    <div style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '1.2rem 1.2rem 1.2rem 0.25rem', boxShadow: 'var(--shadow-sm)' }}>
+    <div style={{
+      alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '5px',
+      padding: '0.75rem 1rem', background: 'var(--card-bg)',
+      border: '1px solid var(--card-border)',
+      borderRadius: '1.2rem 1.2rem 1.2rem 0.25rem', boxShadow: 'var(--shadow-sm)',
+    }}>
       <style>{`
-        @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
-        .dot { width:7px; height:7px; border-radius:50%; background:var(--primary-color); opacity:0.7; animation:bounce 1.2s infinite; }
-        .dot:nth-child(2){animation-delay:.15s}
-        .dot:nth-child(3){animation-delay:.3s}
+        @keyframes dotBounce { 0%,80%,100%{transform:translateY(0);opacity:0.5} 40%{transform:translateY(-6px);opacity:1} }
+        .tdot { width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotBounce 1.1s infinite ease-in-out; }
+        .tdot:nth-child(2){animation-delay:.15s}.tdot:nth-child(3){animation-delay:.3s}
       `}</style>
-      <div className="dot" />
-      <div className="dot" />
-      <div className="dot" />
+      <div className="tdot"/><div className="tdot"/><div className="tdot"/>
     </div>
   )
 }
 
 export default function Chat() {
   const { state, dispatch } = useAppContext()
-  const [input, setInput] = useState('')
-  const [isTyping, setIsTyping] = useState(false)
+  const [input, setInput]           = useState('')
+  const [isTyping, setIsTyping]     = useState(false)
   const [isListening, setIsListening] = useState(false)
   const messagesEndRef = useRef(null)
 
-  const checkItems = ['id_proof', 'voter_id', 'address_proof']
-  const completedCount = checkItems.filter(id => state.checklist_status[id]).length
-  const readinessPct = Math.round((completedCount / checkItems.length) * 100)
+  const checkItems      = ['id_proof', 'voter_id', 'address_proof']
+  const completedCount  = checkItems.filter(id => state.checklist_status[id]).length
+  const readinessPct    = Math.round((completedCount / checkItems.length) * 100)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [state.messages, isTyping])
 
   const handleSend = useCallback(async (textOverride) => {
-    const textToSend = (textOverride || input).trim()
+    const textToSend = (typeof textOverride === 'string' ? textOverride : input).trim()
     if (!textToSend || isTyping) return
     setInput('')
 
-    // Misinformation check
+    // Misinformation guard
     const warning = checkMisinformation(textToSend)
     dispatch({ type: 'ADD_MESSAGE', payload: { role: 'user', text: textToSend } })
     if (warning) {
@@ -60,63 +61,41 @@ export default function Chat() {
 
     setIsTyping(true)
 
-    // ── STEP 1: Generate fallback response IMMEDIATELY ────────────────────────
-    const fallback = getFallbackResponse(textToSend, state)
+    // ── Brief "thinking" pause so it feels considered, not robotic ──────────
+    await new Promise(r => setTimeout(r, 380))
 
-    // Extract context changes from fallback
-    const { nextPanel, nextStage, nextAppView } = processContext(
-      fallback.extracted_intent || '',
-      state,
-      textToSend
-    )
+    // ── Generate local response (always works, no network needed) ────────────
+    const response = getFallbackResponse(textToSend, state)
 
-    // Apply panel/stage changes
-    if (fallback.extracted_location) dispatch({ type: 'SET_LOCATION', payload: fallback.extracted_location })
-    if (fallback.is_first_time) {
+    // ── Apply context side-effects ────────────────────────────────────────────
+    if (response.extracted_location) {
+      dispatch({ type: 'SET_LOCATION', payload: response.extracted_location })
+    }
+    if (response.is_first_time) {
       dispatch({ type: 'SET_FIRST_TIME_VOTER', payload: true })
       dispatch({ type: 'SET_ACTIVE_PANEL', payload: 'checklist' })
     }
-    const panelToOpen = fallback.suggestedPanel || nextPanel
-    if (panelToOpen && panelToOpen !== state.active_panel) dispatch({ type: 'SET_ACTIVE_PANEL', payload: panelToOpen })
-    if (nextStage && nextStage !== state.user_stage) dispatch({ type: 'SET_USER_STAGE', payload: nextStage })
-    if (nextAppView && nextAppView !== state.app_view) dispatch({ type: 'SET_APP_VIEW', payload: nextAppView })
 
-    // ── STEP 2: Show fallback after a brief "thinking" delay ─────────────────
-    // Small delay makes it feel considered, not instant/robotic
-    await new Promise(r => setTimeout(r, 400))
-
-    let finalText = fallback.text
-
-    // ── STEP 3: Try Gemini in parallel — silently enhance if it works ─────────
-    try {
-      const { apiChat } = await import('../services/api.js')
-      const { getFallbackResponse: _unused, ...rest } = await import('../utils/fallbackEngine.js')
-      void _unused // suppress unused import warning
-
-      const systemPrompt = `You are ElectionAssist, a helpful election assistant.
-User Stage: ${state.user_stage}. First time voter: ${state.first_time_voter}. Location: ${state.location || 'Unknown'}.
-Keep responses SHORT (under 120 words), step-by-step, and friendly.
-Always start contextual answers with "Based on your current step..."
-Return ONLY valid JSON: {"text":"...","extracted_intent":"...","extracted_location":null,"is_first_time":null}`
-
-      const aiRes = await Promise.race([
-        apiChat(textToSend, systemPrompt),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000))
-      ])
-
-      if (aiRes?.text && !aiRes?.error && aiRes.text.length > 20) {
-        finalText = aiRes.text
-        // Apply AI-provided location/first-time if available
-        if (aiRes.extracted_location) dispatch({ type: 'SET_LOCATION', payload: aiRes.extracted_location })
-        if (aiRes.is_first_time) dispatch({ type: 'SET_FIRST_TIME_VOTER', payload: true })
-      }
-    } catch {
-      // Gemini unavailable — fallback already ready, silently continue
+    const { nextPanel, nextStage, nextAppView } = processContext(
+      response.extracted_intent || '',
+      state,
+      textToSend
+    )
+    const panelTarget = response.suggestedPanel || nextPanel
+    if (panelTarget && panelTarget !== state.active_panel) {
+      dispatch({ type: 'SET_ACTIVE_PANEL', payload: panelTarget })
+    }
+    if (nextStage && nextStage !== state.user_stage) {
+      dispatch({ type: 'SET_USER_STAGE', payload: nextStage })
+    }
+    if (nextAppView && nextAppView !== state.app_view) {
+      dispatch({ type: 'SET_APP_VIEW', payload: nextAppView })
     }
 
-    dispatch({ type: 'ADD_MESSAGE', payload: { role: 'assistant', text: finalText } })
+    // ── Show response ─────────────────────────────────────────────────────────
+    dispatch({ type: 'ADD_MESSAGE', payload: { role: 'assistant', text: response.text } })
     setIsTyping(false)
-    speakText(finalText, state.user_language)
+    speakText(response.text, state.user_language)
   }, [input, isTyping, state, dispatch])
 
   const handleMicClick = () => {
@@ -125,7 +104,7 @@ Return ONLY valid JSON: {"text":"...","extracted_intent":"...","extracted_locati
     startSpeechRecognition(
       state.user_language,
       (transcript) => { setIsListening(false); handleSend(transcript) },
-      () => { setIsListening(false) }
+      ()           => { setIsListening(false) }
     )
   }
 
@@ -147,9 +126,10 @@ Return ONLY valid JSON: {"text":"...","extracted_intent":"...","extracted_locati
         </div>
       )}
 
-      {/* Messages */}
+      {/* Message List */}
       <div className="scrollable" style={{ flex: 1, padding: '1.25rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
 
+        {/* Empty state */}
         {state.messages.length === 0 && (
           <div style={{ margin: 'auto', textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem' }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👋</div>
@@ -157,7 +137,7 @@ Return ONLY valid JSON: {"text":"...","extracted_intent":"...","extracted_locati
               {state.user_profile ? `Hi ${state.user_profile.name.split(' ')[0]}!` : 'Hello!'}
             </p>
             <p style={{ fontSize: '0.9rem', maxWidth: '280px', lineHeight: 1.6 }}>
-              I'm your Election Assistant. Ask me anything about voting, or tap a quick action below.
+              I'm your Election Assistant. Ask me anything about voting!
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '1.5rem', maxWidth: '300px', margin: '1.5rem auto 0' }}>
               {[
@@ -179,8 +159,9 @@ Return ONLY valid JSON: {"text":"...","extracted_intent":"...","extracted_locati
           </div>
         )}
 
+        {/* Messages */}
         {state.messages.map((msg, idx) => (
-          <div key={idx} className="message-fade-in" style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '88%' }}>
+          <div key={idx} className="msg-anim" style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '88%' }}>
             <div style={{
               background: msg.role === 'user'
                 ? 'linear-gradient(135deg, var(--primary-color), var(--primary-hover))'
@@ -191,13 +172,12 @@ Return ONLY valid JSON: {"text":"...","extracted_intent":"...","extracted_locati
               border: msg.role === 'assistant' ? '1px solid var(--card-border)' : 'none',
               boxShadow: 'var(--shadow-sm)',
               fontSize: state.simple_mode ? '1.1rem' : '1rem',
-              lineHeight: 1.65,
-              whiteSpace: 'pre-wrap',
+              lineHeight: 1.65, whiteSpace: 'pre-wrap',
             }}>
               {msg.text}
             </div>
             {msg.role === 'assistant' && (
-              <button onClick={() => speakText(msg.text, state.user_language)} aria-label="Listen to response"
+              <button onClick={() => speakText(msg.text, state.user_language)} aria-label="Listen"
                 style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0.25rem' }}>
                 <Volume2 size={13} /> Listen
               </button>
@@ -233,12 +213,12 @@ Return ONLY valid JSON: {"text":"...","extracted_intent":"...","extracted_locati
           color: isListening ? 'white' : 'var(--text-primary)',
           border: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s ease',
-          animation: isListening ? 'pulse 1.5s infinite' : 'none',
         }}>
           <Mic size={20} />
         </button>
 
-        <input type="text" value={input}
+        <input
+          type="text" value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !isTyping && handleSend()}
           placeholder={isListening ? '🎙️ Listening…' : 'Ask anything about voting…'}
@@ -250,7 +230,7 @@ Return ONLY valid JSON: {"text":"...","extracted_intent":"...","extracted_locati
           }}
         />
 
-        <button onClick={() => handleSend()} disabled={isTyping || !input.trim()} aria-label="Send message" style={{
+        <button onClick={() => handleSend()} disabled={isTyping || !input.trim()} aria-label="Send" style={{
           width: '46px', height: '46px', borderRadius: '50%',
           background: isTyping || !input.trim() ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, var(--primary-color), var(--accent-color))',
           color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -263,9 +243,8 @@ Return ONLY valid JSON: {"text":"...","extracted_intent":"...","extracted_locati
       </div>
 
       <style>{`
-        .message-fade-in { animation: fadeIn 0.3s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        .msg-anim { animation: msgIn 0.25s ease forwards; }
+        @keyframes msgIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
       `}</style>
     </div>
   )
