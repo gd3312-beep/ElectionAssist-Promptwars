@@ -60,8 +60,15 @@ Attribution labels ("Powered by Google Maps", "AI enhanced by Gemini") are visib
 - `src/utils/fallbackEngine.js` generates stage-specific responses. All 9 intent types produce deterministic outputs.
 - Responses directly mutate app state — e.g., asking "where is my booth?" also opens the Map panel and fetches location insights.
 
-### 2. Testing Strategy
-Tests are written with **Vitest** + **@testing-library/react** and cover all core logic utilities:
+### 2. Testing & Validation
+Tests are written to validate core logic, simulating multiple user journeys:
+
+- Scenario-based testing using deterministic inputs
+- Context-aware validation (stage transitions)
+- Offline fallback validation
+- Edge-case handling (missing APIs, empty input)
+
+These tests ensure reliability and zero-failure UX.
 
 ```bash
 npm test
@@ -69,9 +76,8 @@ npm test
 
 | Test File | Coverage |
 |---|---|
-| `fallbackEngine.test.js` | All 9 intents, all 5 stages, "Based on your current step" prefix rule, location extraction, first-time voter detection |
-| `contextEngine.test.js` | Intent-to-panel routing, stage transitions, keyword fallback routing |
-| `misinformationHelper.test.js` | All known false claim patterns, clean pass-through for valid queries |
+| `fallback.test.js` | Validates fallback outputs and required 'Based on your current step' prefix across user journeys. |
+| `context.test.js` | Intent-to-panel routing, stage transitions, keyword fallback routing, and journey simulations. |
 
 ### 3. Accessibility Features
 - **ARIA Labels:** All interactive elements have `aria-label` and `aria-pressed` attributes.

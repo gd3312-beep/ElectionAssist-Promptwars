@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
+import React, { Suspense, lazy } from 'react'
 import './App.css'
 import Header from './components/Header'
 import Chat from './components/Chat'
 import Checklist from './components/Checklist'
 import Timeline from './components/Timeline'
-import MapView from './components/MapView'
+const MapView = lazy(() => import('./components/MapView'))
 import Simulator from './components/Simulator'
 import Landing from './components/Landing'
 import GuidedMode from './components/GuidedMode'
@@ -24,7 +24,11 @@ function AppContent() {
       case 'timeline':
         return <Timeline />
       case 'map':
-        return <MapView />
+        return (
+          <Suspense fallback={<div style={{ padding: '1rem' }}>Loading Map...</div>}>
+            <MapView />
+          </Suspense>
+        )
       case 'simulator':
         return <Simulator />
       case 'candidates':

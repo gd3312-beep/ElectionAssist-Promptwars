@@ -31,6 +31,9 @@ Ensure the output is strictly valid JSON without markdown wrapping.`
   try {
     const response = await apiChat(message, systemPrompt)
     if (response && response.text && !response.error) {
+      if (!response.text.startsWith("Based on your current step")) {
+        response.text = "Based on your current step... " + response.text;
+      }
       return response
     }
     throw new Error(response.error || 'Invalid response')
@@ -45,5 +48,25 @@ Ensure the output is strictly valid JSON without markdown wrapping.`
       text: `AI is temporarily unavailable. I’ll guide you using built-in assistance.\n\n${fallback.text}`,
       isFallback: true
     }
+  }
+}
+
+export async function generateContent(prompt, state) {
+  try {
+    const response = await apiChat(prompt, "You are a helpful assistant.");
+    return response.text || "No content generated.";
+  } catch (error) {
+    console.warn("generateContent failed, using fallback:", error);
+    return "Based on your current step, I'm unable to generate dynamic content right now.";
+  }
+}
+
+export async function summarizeIntent(text) {
+  try {
+    const response = await apiChat(text, "Summarize the user's intent in 2-3 words.");
+    return response.text || "general_inquiry";
+  } catch (error) {
+    console.warn("summarizeIntent failed, using fallback:", error);
+    return "general_inquiry";
   }
 }
