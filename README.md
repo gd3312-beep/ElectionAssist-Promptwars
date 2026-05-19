@@ -13,7 +13,7 @@ Our platform addresses the critical need for clear, step-by-step guidance that h
 
 ---
 
-## 🧠 Architecture: Fallback-First Hybrid AI
+## 🧠 Architecture:
 
 To guarantee 100% reliability, ElectionAssist uses a **two-layer intelligence model**:
 
