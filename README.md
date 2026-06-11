@@ -2,10 +2,7 @@
 
 >[Live demo](https://electionassist-570282205129.us-central1.run.app)
 
-**ElectionAssist** is an intelligent, context-aware civic assistant built for the **Prompt Wars Virtual (Google x Hack2Skill)** hackathon. It guides citizens through the entire Indian election process — from voter registration to casting their ballot — ensuring a smooth, accessible, and failure-proof experience.
-
-Our platform addresses the critical need for clear, step-by-step guidance that helps all voters — especially first-timers — navigate the complexities of the Indian electoral process.
-
+ElectionAssist is a context-aware conversational decision intelligence system that combines retrieval-based reasoning, dialogue state tracking, deterministic inference, and LLM-enhanced semantic understanding to provide reliable civic guidance.
 ---
 
 ##  Architecture:
