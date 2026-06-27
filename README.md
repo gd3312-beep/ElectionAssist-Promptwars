@@ -8,8 +8,8 @@ The application is deployed on Google Cloud Run and uses Google Gemini, Maps, an
 
 ## Demo
 
-- **Live Demo**: [Insert Link Here]
-- **Video Walkthrough**: [Insert Link Here]
+- **Live Demo**: [Insert Link Here]](https://electionassist-570282205129.us-central1.run.app/)
+
 
 ## Tech Stack
 
